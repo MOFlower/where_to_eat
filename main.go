@@ -13,26 +13,26 @@ type Node interface {
 	child() []Node
 }
 
-// -- SimpleNode -- //
+// -- simpleNode -- //
 
-type SimpleNode struct {
+type simpleNode struct {
 	name     string
 	children []Node
 }
 
-func (n *SimpleNode) add(nodes ...Node) Node {
+func (n *simpleNode) add(nodes ...Node) Node {
 	for _, node := range nodes {
 		n.children = append(n.children, node)
 	}
 	return n
 }
 
-func (n *SimpleNode) exec(f func(node Node)) Node {
+func (n *simpleNode) exec(f func(node Node)) Node {
 	f(n)
 	return n
 }
 
-func (n *SimpleNode) child() []Node {
+func (n *simpleNode) child() []Node {
 	return n.children
 }
 
@@ -41,7 +41,7 @@ func (n *SimpleNode) child() []Node {
 const avgLevel = 60
 
 type DecisionNode struct {
-	SimpleNode
+	simpleNode
 	level                 int
 	cumulativeProbability int
 
@@ -50,7 +50,7 @@ type DecisionNode struct {
 }
 
 func (n *DecisionNode) add(nodes ...Node) Node {
-	n.SimpleNode.add(nodes...)
+	n.simpleNode.add(nodes...)
 	return n
 }
 
@@ -65,7 +65,8 @@ func (n *DecisionNode) child() []Node {
 
 // -- other -- //
 
-func (n SimpleNode) weights(level int) *DecisionNode {
+// @param level from [1, 100]
+func (n simpleNode) weights(level int) *DecisionNode {
 	if level < 1 || level > 100 {
 		print("level need in 1 to 100\n")
 		os.Exit(-1)
@@ -79,13 +80,14 @@ func (n SimpleNode) weights(level int) *DecisionNode {
 	}
 }
 
-func newNode(name string) *SimpleNode {
+func newNode(name string) *simpleNode {
 	children := make([]Node, 0)
-	return &SimpleNode{
+	return &simpleNode{
 		name,
 		children,
 	}
 }
+
 func newRoot() Node {
 	root := newNode("where to eat:").weights(1)
 	newNList := func() []Node {
@@ -106,14 +108,14 @@ func newRoot() Node {
 	)
 }
 
-func getSimpleNode(n Node) *SimpleNode {
-	var node *SimpleNode
+func getSimpleNode(n Node) *simpleNode {
+	var node *simpleNode
 	switch n.(type) {
-	case *SimpleNode:
-		node = n.(*SimpleNode)
+	case *simpleNode:
+		node = n.(*simpleNode)
 		break
 	case *DecisionNode:
-		node = &(n.(*DecisionNode).SimpleNode)
+		node = &(n.(*DecisionNode).simpleNode)
 		break
 	}
 	return node
@@ -125,10 +127,10 @@ func genProbabilityFunc(n Node) {
 	node := getSimpleNode(n)
 	for index, item := range node.children {
 		switch item.(type) {
-		case *SimpleNode:
+		case *simpleNode:
 			sum += avgLevel
 			node.children[index] = &DecisionNode{
-				*(item.(*SimpleNode)),
+				*(item.(*simpleNode)),
 				avgLevel,
 				sum,
 				0,
@@ -197,7 +199,7 @@ func printDecisionTree(n Node) {
 func main() {
 	rand.Seed(time.Now().Unix())
 	r := newRoot().exec(genProbabilityFunc)
-	cnt := rand.Intn(10000) + 1000
+	cnt := rand.Intn(9000) + 1000
 	for i := 1; i < cnt; i++ {
 		r.exec(randSelect)
 	}
