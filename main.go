@@ -36,6 +36,21 @@ func (n *simpleNode) child() []Node {
 	return n.children
 }
 
+// @param level from [1, 100]
+func (n simpleNode) weights(level int) *DecisionNode {
+	if level < 1 || level > 100 {
+		print("level need in 1 to 100\n")
+		os.Exit(-1)
+	}
+
+	return &DecisionNode{
+		n,
+		level,
+		0,
+		0,
+	}
+}
+
 // -- DecisionNode -- //
 
 const avgLevel = 60
@@ -64,21 +79,6 @@ func (n *DecisionNode) child() []Node {
 }
 
 // -- other -- //
-
-// @param level from [1, 100]
-func (n simpleNode) weights(level int) *DecisionNode {
-	if level < 1 || level > 100 {
-		print("level need in 1 to 100\n")
-		os.Exit(-1)
-	}
-
-	return &DecisionNode{
-		n,
-		level,
-		0,
-		0,
-	}
-}
 
 func newNode(name string) *simpleNode {
 	children := make([]Node, 0)
