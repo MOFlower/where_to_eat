@@ -4,15 +4,23 @@ option go_package = "where_to_eat/network/protobuf";
 package network;
 
 service W2E {
-    rpc  BroadCast(Req) returns (Resp) {}
+    rpc Pull(Req) returns (Resp) {}
+    rpc Push(Req) returns (Resp) {}
 };
+
+enum CommandType {
+    APPEND_LOG = 0;
+};
+
 
 message Req {
     int64 clientId = 1;
     string msg = 2;
+    CommandType cmd = 3;
 };
 
 message Resp {
     int64 toClientId = 1;
     string msg = 2;
+    CommandType cmd = 3;
 };

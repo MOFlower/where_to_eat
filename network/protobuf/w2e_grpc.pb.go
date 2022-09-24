@@ -22,7 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type W2EClient interface {
-	BroadCast(ctx context.Context, in *Req, opts ...grpc.CallOption) (*Resp, error)
+	Pull(ctx context.Context, in *Req, opts ...grpc.CallOption) (*Resp, error)
+	Push(ctx context.Context, in *Req, opts ...grpc.CallOption) (*Resp, error)
 }
 
 type w2EClient struct {
@@ -33,9 +34,18 @@ func NewW2EClient(cc grpc.ClientConnInterface) W2EClient {
 	return &w2EClient{cc}
 }
 
-func (c *w2EClient) BroadCast(ctx context.Context, in *Req, opts ...grpc.CallOption) (*Resp, error) {
+func (c *w2EClient) Pull(ctx context.Context, in *Req, opts ...grpc.CallOption) (*Resp, error) {
 	out := new(Resp)
-	err := c.cc.Invoke(ctx, "/network.W2E/BroadCast", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/network.W2E/Pull", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *w2EClient) Push(ctx context.Context, in *Req, opts ...grpc.CallOption) (*Resp, error) {
+	out := new(Resp)
+	err := c.cc.Invoke(ctx, "/network.W2E/Push", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +56,8 @@ func (c *w2EClient) BroadCast(ctx context.Context, in *Req, opts ...grpc.CallOpt
 // All implementations must embed UnimplementedW2EServer
 // for forward compatibility
 type W2EServer interface {
-	BroadCast(context.Context, *Req) (*Resp, error)
+	Pull(context.Context, *Req) (*Resp, error)
+	Push(context.Context, *Req) (*Resp, error)
 	mustEmbedUnimplementedW2EServer()
 }
 
@@ -54,8 +65,11 @@ type W2EServer interface {
 type UnimplementedW2EServer struct {
 }
 
-func (UnimplementedW2EServer) BroadCast(context.Context, *Req) (*Resp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BroadCast not implemented")
+func (UnimplementedW2EServer) Pull(context.Context, *Req) (*Resp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Pull not implemented")
+}
+func (UnimplementedW2EServer) Push(context.Context, *Req) (*Resp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Push not implemented")
 }
 func (UnimplementedW2EServer) mustEmbedUnimplementedW2EServer() {}
 
@@ -70,20 +84,38 @@ func RegisterW2EServer(s grpc.ServiceRegistrar, srv W2EServer) {
 	s.RegisterService(&W2E_ServiceDesc, srv)
 }
 
-func _W2E_BroadCast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _W2E_Pull_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Req)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(W2EServer).BroadCast(ctx, in)
+		return srv.(W2EServer).Pull(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/network.W2E/BroadCast",
+		FullMethod: "/network.W2E/Pull",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(W2EServer).BroadCast(ctx, req.(*Req))
+		return srv.(W2EServer).Pull(ctx, req.(*Req))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _W2E_Push_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(W2EServer).Push(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/network.W2E/Push",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(W2EServer).Push(ctx, req.(*Req))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -96,8 +128,12 @@ var W2E_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*W2EServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "BroadCast",
-			Handler:    _W2E_BroadCast_Handler,
+			MethodName: "Pull",
+			Handler:    _W2E_Pull_Handler,
+		},
+		{
+			MethodName: "Push",
+			Handler:    _W2E_Push_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
