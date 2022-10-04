@@ -2,7 +2,7 @@ package w2e
 
 type Node interface {
 	Add(nodes ...Node) Node
-	Exec(f func(node Node)) Node
+	Exec(f func(node Node, args ...interface{}), args ...interface{}) Node
 	Child() []Node
 }
 
@@ -20,8 +20,8 @@ func (n *SimpleNode) Add(nodes ...Node) Node {
 	return n
 }
 
-func (n *SimpleNode) Exec(f func(node Node)) Node {
-	f(n)
+func (n *SimpleNode) Exec(f func(node Node, args ...interface{}), args ...interface{}) Node {
+	f(n, args)
 	return n
 }
 

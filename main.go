@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
+	"log"
 	"math/rand"
 	"time"
+	"where_to_eat/network/client"
 	. "where_to_eat/w2e"
 )
 
@@ -37,10 +40,23 @@ func newRoot() Node {
 func main() {
 	rand.Seed(time.Now().Unix())
 	r := newRoot().Exec(GenProbabilityFunc)
+	ans := ""
 	cnt := rand.Intn(9000) + 1000
-	for i := 1; i < cnt; i++ {
-		r.Exec(RandSelect)
+	for i := 0; i < cnt; i++ {
+		if i == cnt-1 {
+			r.Exec(RandSelect, &ans)
+		} else {
+			r.Exec(RandSelect)
+		}
 	}
-	println(cnt)
+
+	// persist
+	err := client.ClientEnd.Commit(context.Background(), ans+"\n")
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
 	r.Exec(PrintDecisionTree)
+	println(cnt)
+	println(ans)
 }

@@ -20,8 +20,8 @@ func (n *DecisionNode) Add(nodes ...Node) Node {
 	return n
 }
 
-func (n *DecisionNode) Exec(f func(node Node)) Node {
-	f(n)
+func (n *DecisionNode) Exec(f func(node Node, args ...interface{}), args ...interface{}) Node {
+	f(n, args...)
 	return n
 }
 
